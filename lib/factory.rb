@@ -18,16 +18,15 @@
 class Factory
   class << self
     def new(class_name, *arguments, &block)
-      const_set(class_name, create_class(*arguments, &block)) if class_name is_a? String
+      const_set(class_name, create_class(*arguments, &block)) if class_name.is_a? String
       create_class(*arguments.unshift(class_name), &block)
     end
-  end
   def create_class(*arguments, &block)
     Class.new do
-      attr_accessor(*arguments)
+      attr_accessor *arguments
 
       define_method :initialize do |*vars|
-        raise ArgumentError, "Expected #{arguments.count}" if arguments.cont != vars.count
+        raise ArgumentError, "Expected #{arguments.count}" if arguments.count != vars.count
 
         arguments.each_index { |index| instance_variable_set("@#{arguments[index]}", vars[index]) }
       end
@@ -47,10 +46,12 @@ class Factory
       define_method :length do
         arguments.size
       end
-
-      define_method :members do
+      
+      define_method :arguments do
         arguments
       end
+
+      alias_method :members, :arguments
 
       define_method :select do |&container|
         values.select(&container)
@@ -83,8 +84,9 @@ class Factory
 
       class_eval(&block) if block_given?
       define_method :to_h do
-        args.zip(values).to_h
+        arguments.zip(values).to_h
       end
     end
   end
+end
 end
